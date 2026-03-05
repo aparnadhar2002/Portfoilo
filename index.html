@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Prompt Engineering Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --border: #1e1e1e;
+    --accent: #e8ff47;
+    --accent2: #ff6b35;
+    --accent3: #00d4ff;
+    --text: #f0f0f0;
+    --muted: #666;
+    --card: #141414;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom Cursor */
+  .cursor {
+    position: fixed; width: 12px; height: 12px;
+    background: var(--accent); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, width 0.3s, height 0.3s, background 0.3s;
+    mix-blend-mode: difference;
+  }
+  .cursor-ring {
+    position: fixed; width: 40px; height: 40px;
+    border: 1px solid rgba(232,255,71,0.4);
+    border-radius: 50%; pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: all 0.15s ease;
+  }
+
+  /* Noise Texture Overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 1000; opacity: 0.4;
+  }
+
+  /* Nav */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+    padding: 20px 40px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    background: rgba(10,10,10,0.8);
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 18px; letter-spacing: -0.5px;
+    color: var(--accent);
+  }
+  .nav-links { display: flex; gap: 32px; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none; font-size: 12px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+
+  /* Hero */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    justify-content: center; padding: 120px 40px 80px;
+    position: relative; overflow: hidden;
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(232,255,71,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,255,71,0.04) 1px, transparent 1px);
+    background-size: 80px 80px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black, transparent);
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid var(--border);
+    padding: 6px 14px; border-radius: 2px;
+    font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 40px; width: fit-content;
+    animation: fadeUp 0.8s ease both;
+  }
+  .hero-badge::before {
+    content: ''; width: 6px; height: 6px;
+    background: var(--accent); border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; } 50% { opacity: 0.3; }
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(48px, 8vw, 110px);
+    line-height: 0.95; letter-spacing: -3px;
+    animation: fadeUp 0.8s 0.1s ease both;
+    position: relative; z-index: 1;
+  }
+  .hero h1 em {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic; color: var(--accent);
+  }
+  .hero-sub {
+    margin-top: 32px; max-width: 520px;
+    color: var(--muted); font-size: 14px; line-height: 1.8;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+  .hero-cta {
+    display: flex; gap: 16px; margin-top: 48px; flex-wrap: wrap;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 28px; font-family: 'DM Mono', monospace;
+    font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+    text-decoration: none; border: 1px solid;
+    transition: all 0.25s; cursor: none;
+  }
+  .btn-primary {
+    background: var(--accent); color: #000; border-color: var(--accent);
+  }
+  .btn-primary:hover { background: #fff; border-color: #fff; }
+  .btn-secondary {
+    background: transparent; color: var(--text); border-color: var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  .hero-stats {
+    display: flex; gap: 48px; margin-top: 80px;
+    animation: fadeUp 0.8s 0.4s ease both;
+  }
+  .stat-num {
+    font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800;
+    color: var(--text); line-height: 1;
+  }
+  .stat-label { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Section shared */
+  section { padding: 100px 40px; }
+  .section-label {
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::after {
+    content: ''; flex: 0 0 40px; height: 1px; background: var(--accent); opacity: 0.4;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: clamp(32px, 5vw, 56px); line-height: 1.05;
+    letter-spacing: -1.5px; margin-bottom: 60px;
+  }
+
+  /* About */
+  .about { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+  .about-text p { color: var(--muted); line-height: 1.9; margin-bottom: 20px; }
+  .about-text p strong { color: var(--text); font-weight: 400; }
+  .skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+  .skill-item {
+    background: var(--card); border: 1px solid var(--border);
+    padding: 20px; transition: border-color 0.2s, transform 0.2s;
+  }
+  .skill-item:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .skill-icon { font-size: 20px; margin-bottom: 8px; }
+  .skill-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .skill-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+  /* Projects */
+  .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 2px; }
+  .project-card {
+    background: var(--card); border: 1px solid var(--border);
+    padding: 36px; position: relative; overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s;
+    display: flex; flex-direction: column;
+  }
+  .project-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 60%, rgba(232,255,71,0.03));
+    pointer-events: none;
+  }
+  .project-card:hover { border-color: var(--accent); transform: translateY(-4px); }
+  .project-num {
+    font-family: 'Syne', sans-serif; font-size: 11px;
+    color: var(--muted); letter-spacing: 0.15em; margin-bottom: 20px;
+  }
+  .project-tag {
+    display: inline-block; background: rgba(232,255,71,0.1);
+    color: var(--accent); font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; padding: 4px 10px;
+    border: 1px solid rgba(232,255,71,0.2); margin-bottom: 16px;
+  }
+  .project-title {
+    font-family: 'Syne', sans-serif; font-size: 22px;
+    font-weight: 700; line-height: 1.2; margin-bottom: 16px;
+  }
+  .project-desc { color: var(--muted); font-size: 13px; line-height: 1.7; flex: 1; margin-bottom: 24px; }
+  .project-tech { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 28px; }
+  .tech-tag {
+    font-size: 10px; color: var(--muted); border: 1px solid var(--border);
+    padding: 3px 8px; letter-spacing: 0.08em;
+  }
+  .project-link {
+    display: flex; align-items: center; gap: 8px;
+    color: var(--accent); text-decoration: none; font-size: 12px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    transition: gap 0.2s;
+  }
+  .project-link:hover { gap: 14px; }
+
+  /* Featured - big card */
+  .project-card.featured {
+    grid-column: 1 / -1;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 48px; align-items: center;
+    background: var(--surface);
+    border-color: rgba(232,255,71,0.2);
+    padding: 60px;
+  }
+  .project-card.featured .project-visual {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px; padding: 28px;
+    font-size: 12px; line-height: 1.8;
+  }
+  .prompt-line { color: var(--muted); }
+  .prompt-line.cmd { color: var(--accent3); }
+  .prompt-line.output { color: var(--accent); }
+  .prompt-line.comment { color: #444; font-style: italic; }
+
+  /* Techniques */
+  .techniques { background: var(--surface); border-top: 1px solid var(--border); }
+  .techniques-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+  .technique-card {
+    padding: 40px 32px; border: 1px solid var(--border);
+    background: var(--card); transition: all 0.25s;
+    position: relative;
+  }
+  .technique-card:hover { border-color: var(--accent); background: rgba(232,255,71,0.02); }
+  .technique-number {
+    font-family: 'Syne', sans-serif; font-size: 48px; font-weight: 800;
+    color: var(--border); line-height: 1; margin-bottom: 20px;
+    transition: color 0.25s;
+  }
+  .technique-card:hover .technique-number { color: var(--accent); }
+  .technique-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+  .technique-desc { color: var(--muted); font-size: 12px; line-height: 1.7; }
+  .technique-examples { margin-top: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .technique-ex {
+    font-size: 11px; color: var(--muted);
+    padding: 6px 10px; background: var(--surface);
+    border-left: 2px solid var(--border); transition: border-color 0.2s;
+  }
+  .technique-card:hover .technique-ex { border-color: var(--accent); }
+
+  /* Prompt Showcase */
+  .showcase { background: var(--bg); }
+  .showcase-tabs { display: flex; gap: 2px; margin-bottom: 32px; flex-wrap: wrap; }
+  .tab-btn {
+    padding: 10px 20px; font-family: 'DM Mono', monospace; font-size: 12px;
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--muted); cursor: none; transition: all 0.2s; letter-spacing: 0.05em;
+  }
+  .tab-btn.active, .tab-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+  .showcase-content { display: none; }
+  .showcase-content.active { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+  .code-block {
+    background: var(--card); border: 1px solid var(--border);
+    padding: 28px; font-size: 12px; line-height: 1.8;
+    overflow-x: auto;
+  }
+  .code-block h4 { font-family: 'Syne', sans-serif; font-size: 13px; margin-bottom: 16px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+  .code-block pre { white-space: pre-wrap; word-break: break-word; }
+  .hl-key { color: var(--accent3); }
+  .hl-str { color: var(--accent); }
+  .hl-com { color: #444; font-style: italic; }
+  .hl-val { color: var(--accent2); }
+
+  /* Contact */
+  .contact {
+    background: var(--surface); border-top: 1px solid var(--border);
+    text-align: center;
+  }
+  .contact .section-title { margin-bottom: 20px; }
+  .contact-sub { color: var(--muted); max-width: 460px; margin: 0 auto 48px; line-height: 1.8; }
+  .contact-links { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+  .contact-link {
+    display: flex; align-items: center; gap: 8px;
+    padding: 14px 28px; border: 1px solid var(--border);
+    color: var(--text); text-decoration: none; font-size: 12px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    transition: all 0.25s;
+  }
+  .contact-link:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Footer */
+  footer {
+    padding: 32px 40px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    color: var(--muted); font-size: 11px; letter-spacing: 0.08em;
+  }
+
+  /* Scroll animations */
+  .reveal { opacity: 0; transform: translateY(28px); transition: all 0.7s cubic-bezier(0.16,1,0.3,1); }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 900px) {
+    nav { padding: 16px 20px; }
+    .nav-links { gap: 20px; }
+    section { padding: 60px 20px; }
+    .hero { padding: 100px 20px 60px; }
+    .about-grid { grid-template-columns: 1fr; gap: 40px; }
+    .techniques-grid { grid-template-columns: 1fr; }
+    .project-card.featured { grid-template-columns: 1fr; grid-column: auto; padding: 32px; }
+    .showcase-content.active { grid-template-columns: 1fr; }
+    .hero-stats { gap: 28px; flex-wrap: wrap; }
+    footer { flex-direction: column; gap: 12px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-logo">PE.PORTFOLIO</div>
+  <div class="nav-links">
+    <a href="#about">About</a>
+    <a href="#projects">Projects</a>
+    <a href="#techniques">Techniques</a>
+    <a href="#showcase">Showcase</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero" id="home">
+  <div class="hero-grid"></div>
+  <div class="hero-badge">Available for Collaboration</div>
+  <h1>Prompt<br/><em>Engineering</em><br/>Specialist</h1>
+  <p class="hero-sub">
+    I design, test, and optimize prompts that transform raw language models into
+    precise, reliable, production-grade AI systems. From zero-shot to agentic pipelines.
+  </p>
+  <div class="hero-cta">
+    <a href="#projects" class="btn btn-primary">View Projects →</a>
+    <a href="#contact" class="btn btn-secondary">Get in Touch</a>
+  </div>
+  <div class="hero-stats">
+    <div>
+      <div class="stat-num">40+</div>
+      <div class="stat-label">Prompt Systems Built</div>
+    </div>
+    <div>
+      <div class="stat-num">12</div>
+      <div class="stat-label">Models Mastered</div>
+    </div>
+    <div>
+      <div class="stat-num">95%</div>
+      <div class="stat-label">Accuracy Uplift Avg.</div>
+    </div>
+    <div>
+      <div class="stat-num">3yr</div>
+      <div class="stat-label">Deep Experience</div>
+    </div>
+  </div>
+</section>
+
+<!-- About -->
+<section class="about" id="about">
+  <div class="about-grid">
+    <div class="about-text reveal">
+      <div class="section-label">About Me</div>
+      <div class="section-title">I speak the language of LLMs.</div>
+      <p>Prompt Engineering isn't about magic words — it's a <strong>rigorous engineering discipline</strong> at the intersection of linguistics, psychology, and systems design.</p>
+      <p>I've built prompt systems for <strong>customer support automation, code generation pipelines, RAG architectures, multi-agent workflows</strong>, and creative AI tools.</p>
+      <p>My work reduces hallucination rates, improves output consistency, and makes AI applications actually <strong>production-ready</strong>.</p>
+      <div style="margin-top:32px;">
+        <a href="#projects" class="btn btn-secondary">Explore My Work →</a>
+      </div>
+    </div>
+    <div class="skills-grid reveal">
+      <div class="skill-item">
+        <div class="skill-icon">⚙️</div>
+        <div class="skill-name">Chain-of-Thought</div>
+        <div class="skill-desc">Structured reasoning prompts for complex multi-step problems</div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-icon">🧩</div>
+        <div class="skill-name">Few-Shot Design</div>
+        <div class="skill-desc">Curating high-signal examples that steer model behavior precisely</div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-icon">🤖</div>
+        <div class="skill-name">Agent Systems</div>
+        <div class="skill-desc">Multi-agent orchestration with tool use and memory management</div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-icon">📊</div>
+        <div class="skill-name">Eval Frameworks</div>
+        <div class="skill-desc">Rigorous LLM-as-judge and automated evaluation pipelines</div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-icon">🔍</div>
+        <div class="skill-name">RAG Prompting</div>
+        <div class="skill-desc">Retrieval-augmented generation with context injection strategies</div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-icon">🛡️</div>
+        <div class="skill-name">Safety & Alignment</div>
+        <div class="skill-desc">Constitutional AI, jailbreak prevention, and guardrail design</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Projects -->
+<section id="projects">
+  <div class="section-label">Selected Work</div>
+  <div class="section-title reveal">Projects that<br/>moved the needle.</div>
+
+  <div class="projects-grid">
+
+    <!-- Featured -->
+    <div class="project-card featured reveal">
+      <div>
+        <div class="project-num">PROJECT 01 — FEATURED</div>
+        <div class="project-tag">🏆 Most Impactful</div>
+        <div class="project-title">Enterprise Customer Support Prompt System</div>
+        <div class="project-desc">
+          Designed a multi-layer prompt architecture for a SaaS company's AI support agent.
+          Reduced escalation rate by 62%, improved CSAT from 3.2 → 4.6/5, and cut average
+          handle time by 40%. Built with dynamic persona injection, intent classification,
+          and graceful fallback chains.
+        </div>
+        <div class="project-tech">
+          <span class="tech-tag">GPT-4o</span>
+          <span class="tech-tag">Claude 3.5</span>
+          <span class="tech-tag">Few-Shot</span>
+          <span class="tech-tag">Chain-of-Thought</span>
+          <span class="tech-tag">Evals</span>
+          <span class="tech-tag">LangChain</span>
+        </div>
+        <a href="https://github.com/yourusername/customer-support-prompt-system" class="project-link">View on GitHub →</a>
+      </div>
+      <div class="project-visual">
+        <pre><span class="prompt-line comment"># System Prompt — Support Agent v3.2</span>
+<span class="prompt-line"> </span>
+<span class="prompt-line cmd">ROLE:</span> <span class="prompt-line">You are Aria, a senior support specialist
+for {company_name}. Your tone is {tone_profile}.</span>
+<span class="prompt-line"> </span>
+<span class="prompt-line cmd">CONTEXT:</span>
+<span class="prompt-line">{retrieved_knowledge_chunks}</span>
+<span class="prompt-line">{user_history_summary}</span>
+<span class="prompt-line"> </span>
+<span class="prompt-line cmd">REASONING:</span> <span class="prompt-line">Before responding, silently:</span>
+<span class="prompt-line">1. Classify intent → {intent_taxonomy}</span>
+<span class="prompt-line">2. Check policy constraints</span>
+<span class="prompt-line">3. Select resolution path</span>
+<span class="prompt-line"> </span>
+<span class="prompt-line output">→ Result: 62% fewer escalations</span></pre>
+      </div>
+    </div>
+
+    <div class="project-card reveal">
+      <div class="project-num">PROJECT 02</div>
+      <div class="project-tag">🧠 Chain-of-Thought</div>
+      <div class="project-title">Automated Code Review Pipeline</div>
+      <div class="project-desc">A multi-pass prompt chain that performs security auditing, complexity analysis, and documentation generation on codebases. Integrated into CI/CD via GitHub Actions. Reduced manual review time by 55%.</div>
+      <div class="project-tech">
+        <span class="tech-tag">Claude 3.5 Sonnet</span>
+        <span class="tech-tag">CoT</span>
+        <span class="tech-tag">Python</span>
+        <span class="tech-tag">GitHub Actions</span>
+      </div>
+      <a href="https://github.com/yourusername/code-review-prompt-chain" class="project-link">View on GitHub →</a>
+    </div>
+
+    <div class="project-card reveal">
+      <div class="project-num">PROJECT 03</div>
+      <div class="project-tag">🤖 Multi-Agent</div>
+      <div class="project-title">Research Synthesis Agent</div>
+      <div class="project-desc">Orchestrated a 5-agent system: Searcher, Reader, Critic, Synthesizer, and Formatter. Given a topic, it produces publication-quality research summaries with citations. Used by academic teams at 3 universities.</div>
+      <div class="project-tech">
+        <span class="tech-tag">AutoGen</span>
+        <span class="tech-tag">GPT-4o</span>
+        <span class="tech-tag">Tool Use</span>
+        <span class="tech-tag">Memory</span>
+      </div>
+      <a href="https://github.com/yourusername/research-synthesis-agent" class="project-link">View on GitHub →</a>
+    </div>
+
+    <div class="project-card reveal">
+      <div class="project-num">PROJECT 04</div>
+      <div class="project-tag">📊 Eval Framework</div>
+      <div class="project-title">LLM Evaluation Suite</div>
+      <div class="project-desc">Open-source framework for evaluating prompt quality across dimensions: factuality, tone adherence, instruction following, safety, and latency. Includes 400+ test cases and a dashboard for tracking regressions across model versions.</div>
+      <div class="project-tech">
+        <span class="tech-tag">Python</span>
+        <span class="tech-tag">LLM-as-Judge</span>
+        <span class="tech-tag">Streamlit</span>
+        <span class="tech-tag">OpenAI Evals</span>
+      </div>
+      <a href="https://github.com/yourusername/llm-eval-suite" class="project-link">View on GitHub →</a>
+    </div>
+
+    <div class="project-card reveal">
+      <div class="project-num">PROJECT 05</div>
+      <div class="project-tag">🔍 RAG</div>
+      <div class="project-title">Legal Document Q&A System</div>
+      <div class="project-desc">RAG system for querying 10,000+ legal documents. Engineered prompts for precise citation extraction, uncertainty quantification ("I cannot confirm..."), and structured JSON output for downstream processing.</div>
+      <div class="project-tech">
+        <span class="tech-tag">LlamaIndex</span>
+        <span class="tech-tag">Claude</span>
+        <span class="tech-tag">Pinecone</span>
+        <span class="tech-tag">Structured Output</span>
+      </div>
+      <a href="https://github.com/yourusername/legal-rag-system" class="project-link">View on GitHub →</a>
+    </div>
+
+    <div class="project-card reveal">
+      <div class="project-num">PROJECT 06</div>
+      <div class="project-tag">✍️ Creative AI</div>
+      <div class="project-title">Adaptive Content Generator</div>
+      <div class="project-desc">A prompt system that adapts writing style, tone, and format based on audience segmentation data. Used by a media company to generate 500+ personalized articles/week with consistent brand voice at scale.</div>
+      <div class="project-tech">
+        <span class="tech-tag">GPT-4o</span>
+        <span class="tech-tag">Style Transfer</span>
+        <span class="tech-tag">Persona Design</span>
+        <span class="tech-tag">FastAPI</span>
+      </div>
+      <a href="https://github.com/yourusername/adaptive-content-generator" class="project-link">View on GitHub →</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- Techniques -->
+<section class="techniques" id="techniques">
+  <div class="section-label">Methodology</div>
+  <div class="section-title reveal">My Prompt Engineering<br/>Toolkit.</div>
+  <div class="techniques-grid">
+    <div class="technique-card reveal">
+      <div class="technique-number">01</div>
+      <div class="technique-title">Chain-of-Thought Prompting</div>
+      <div class="technique-desc">Guiding models to reason step-by-step before answering. Dramatically improves accuracy on logic, math, and multi-constraint problems.</div>
+      <div class="technique-examples">
+        <div class="technique-ex">→ "Let's think step by step..."</div>
+        <div class="technique-ex">→ Zero-shot CoT triggers</div>
+        <div class="technique-ex">→ Self-consistency decoding</div>
+      </div>
+    </div>
+    <div class="technique-card reveal">
+      <div class="technique-number">02</div>
+      <div class="technique-title">Few-Shot Example Design</div>
+      <div class="technique-desc">Carefully curated input-output examples that encode pattern, format, and style — teaching models by demonstration, not instruction.</div>
+      <div class="technique-examples">
+        <div class="technique-ex">→ Example diversity strategies</div>
+        <div class="technique-ex">→ Edge case inclusion</div>
+        <div class="technique-ex">→ Format-locking patterns</div>
+      </div>
+    </div>
+    <div class="technique-card reveal">
+      <div class="technique-number">03</div>
+      <div class="technique-title">Role & Persona Injection</div>
+      <div class="technique-desc">Crafting detailed system personas that shape model behavior, expertise level, communication style, and constraint adherence.</div>
+      <div class="technique-examples">
+        <div class="technique-ex">→ Expert persona construction</div>
+        <div class="technique-ex">→ Tone & voice calibration</div>
+        <div class="technique-ex">→ Dynamic persona switching</div>
+      </div>
+    </div>
+    <div class="technique-card reveal">
+      <div class="technique-number">04</div>
+      <div class="technique-title">Structured Output Engineering</div>
+      <div class="technique-desc">Forcing reliable JSON, XML, or custom formats through schema definition, grammar constraints, and validation-retry loops.</div>
+      <div class="technique-examples">
+        <div class="technique-ex">→ JSON schema prompting</div>
+        <div class="technique-ex">→ Pydantic output parsing</div>
+        <div class="technique-ex">→ Self-healing retry loops</div>
+      </div>
+    </div>
+    <div class="technique-card reveal">
+      <div class="technique-number">05</div>
+      <div class="technique-title">Prompt Evaluation & Testing</div>
+      <div class="technique-desc">Systematic A/B testing, LLM-as-judge evaluation, regression tracking, and red-teaming to ensure prompt reliability at scale.</div>
+      <div class="technique-examples">
+        <div class="technique-ex">→ Automated eval pipelines</div>
+        <div class="technique-ex">→ LLM-as-judge scoring</div>
+        <div class="technique-ex">→ Red-teaming & adversarial</div>
+      </div>
+    </div>
+    <div class="technique-card reveal">
+      <div class="technique-number">06</div>
+      <div class="technique-title">Meta-Prompting & Self-Refinement</div>
+      <div class="technique-desc">Using LLMs to generate, critique, and improve their own prompts. Building self-correcting pipelines that improve output quality iteratively.</div>
+      <div class="technique-examples">
+        <div class="technique-ex">→ Prompt-generating prompts</div>
+        <div class="technique-ex">→ Critic-refiner loops</div>
+        <div class="technique-ex">→ Constitutional AI patterns</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Prompt Showcase -->
+<section class="showcase" id="showcase">
+  <div class="section-label">Live Examples</div>
+  <div class="section-title reveal">Real prompts.<br/>Real results.</div>
+
+  <div class="showcase-tabs">
+    <button class="tab-btn active" onclick="switchTab('cot')">Chain-of-Thought</button>
+    <button class="tab-btn" onclick="switchTab('fewshot')">Few-Shot</button>
+    <button class="tab-btn" onclick="switchTab('structured')">Structured Output</button>
+    <button class="tab-btn" onclick="switchTab('agent')">Agent System</button>
+  </div>
+
+  <!-- CoT -->
+  <div class="showcase-content active" id="tab-cot">
+    <div class="code-block">
+      <h4>📝 Prompt</h4>
+      <pre><span class="hl-com"># Zero-Shot Chain-of-Thought</span>
+
+<span class="hl-key">SYSTEM:</span>
+<span class="hl-str">You are a senior financial analyst. When solving
+problems, always reason through each step explicitly
+before giving your final answer. Show your work.</span>
+
+<span class="hl-key">USER:</span>
+<span class="hl-str">A company's revenue grew 23% YoY to $4.2M.
+Their gross margin improved from 41% to 47%.
+What was last year's gross profit, and by how
+much (in dollars) did gross profit increase?</span>
+
+<span class="hl-com"># Key: "show your work" triggers CoT</span>
+<span class="hl-com"># No examples needed — zero-shot CoT</span></pre>
+    </div>
+    <div class="code-block">
+      <h4>✅ Model Output</h4>
+      <pre><span class="hl-key">Step 1:</span> Find last year's revenue.
+<span class="hl-str">$4.2M ÷ 1.23 = $3.415M (last year)</span>
+
+<span class="hl-key">Step 2:</span> Calculate last year's gross profit.
+<span class="hl-str">$3.415M × 41% = $1.400M</span>
+
+<span class="hl-key">Step 3:</span> Calculate this year's gross profit.
+<span class="hl-str">$4.2M × 47% = $1.974M</span>
+
+<span class="hl-key">Step 4:</span> Find the increase.
+<span class="hl-str">$1.974M - $1.400M = $574K increase</span>
+
+<span class="hl-val">ANSWER: Last year's gross profit was $1.40M.
+It increased by $574,000 (41% growth).</span></pre>
+    </div>
+  </div>
+
+  <!-- Few-Shot -->
+  <div class="showcase-content" id="tab-fewshot">
+    <div class="code-block">
+      <h4>📝 Prompt</h4>
+      <pre><span class="hl-com"># Few-Shot — Sentiment + Intent Classifier</span>
+
+<span class="hl-key">SYSTEM:</span> <span class="hl-str">Classify customer messages.</span>
+<span class="hl-str">Output JSON: {sentiment, intent, urgency}</span>
+
+<span class="hl-key">EXAMPLES:</span>
+<span class="hl-com">Input:</span> <span class="hl-str">"This is the third time I've emailed!"</span>
+<span class="hl-com">Output:</span> <span class="hl-val">{"sentiment":"frustrated","intent":"escalate","urgency":"high"}</span>
+
+<span class="hl-com">Input:</span> <span class="hl-str">"Could I get an invoice copy?"</span>
+<span class="hl-com">Output:</span> <span class="hl-val">{"sentiment":"neutral","intent":"billing","urgency":"low"}</span>
+
+<span class="hl-com">Input:</span> <span class="hl-str">"Love the new feature, but one small thing..."</span>
+<span class="hl-com">Output:</span> <span class="hl-val">{"sentiment":"positive","intent":"feedback","urgency":"low"}</span>
+
+<span class="hl-key">NOW CLASSIFY:</span>
+<span class="hl-str">"My account is locked and I have a demo in 1hr"</span></pre>
+    </div>
+    <div class="code-block">
+      <h4>✅ Model Output</h4>
+      <pre><span class="hl-val">{
+  "sentiment": "stressed",
+  "intent": "account_access",
+  "urgency": "critical"
+}</span>
+
+<span class="hl-com">---</span>
+<span class="hl-com"># Why this works:</span>
+<span class="hl-com"># • 3 examples cover emotional range</span>
+<span class="hl-com"># • Format locked via example demonstration</span>
+<span class="hl-com"># • Model extrapolates "critical" from</span>
+<span class="hl-com">#   the time constraint context</span>
+<span class="hl-com"># • No explicit urgency scale defined —</span>
+<span class="hl-com">#   examples taught it implicitly</span></pre>
+    </div>
+  </div>
+
+  <!-- Structured Output -->
+  <div class="showcase-content" id="tab-structured">
+    <div class="code-block">
+      <h4>📝 Prompt</h4>
+      <pre><span class="hl-com"># Structured Output — Product Extractor</span>
+
+<span class="hl-key">SYSTEM:</span>
+<span class="hl-str">Extract product information from text.
+Return ONLY valid JSON matching this schema:
+{
+  "name": string,
+  "price_usd": number | null,
+  "features": string[],
+  "in_stock": boolean,
+  "confidence": "high"|"medium"|"low"
+}
+No markdown. No explanation. JSON only.</span>
+
+<span class="hl-key">USER:</span>
+<span class="hl-str">"The Pro X Headphones retail for $299 and
+come with ANC, 40hr battery, and USB-C.
+Currently showing limited availability."</span></pre>
+    </div>
+    <div class="code-block">
+      <h4>✅ Model Output</h4>
+      <pre><span class="hl-val">{
+  "name": "Pro X Headphones",
+  "price_usd": 299,
+  "features": [
+    "Active Noise Cancellation",
+    "40-hour battery life",
+    "USB-C charging"
+  ],
+  "in_stock": true,
+  "confidence": "medium"
+}</span>
+
+<span class="hl-com"># Note: "limited availability" → in_stock: true</span>
+<span class="hl-com"># (not false) — model correctly infers</span>
+<span class="hl-com"># "limited" ≠ "out of stock"</span>
+<span class="hl-com"># confidence: medium reflects ambiguity</span></pre>
+    </div>
+  </div>
+
+  <!-- Agent -->
+  <div class="showcase-content" id="tab-agent">
+    <div class="code-block">
+      <h4>📝 Orchestrator Prompt</h4>
+      <pre><span class="hl-com"># Multi-Agent Research System</span>
+
+<span class="hl-key">SYSTEM (Orchestrator):</span>
+<span class="hl-str">You manage a research team. Break the user's
+question into subtasks. Assign each to an agent:
+
+AGENTS:
+- search_agent(query) → web results
+- read_agent(url) → page summary  
+- critic_agent(text) → fact-check
+- synthesizer_agent(facts[]) → report
+
+Always run critic_agent before synthesizer.
+Return final report in markdown.</span>
+
+<span class="hl-key">USER:</span>
+<span class="hl-str">"Compare LLaMA 3 vs GPT-4o for enterprise use"</span>
+
+<span class="hl-com"># Agents run in parallel where possible</span>
+<span class="hl-com"># Critic gate prevents hallucinations</span></pre>
+    </div>
+    <div class="code-block">
+      <h4>✅ Agent Execution Trace</h4>
+      <pre><span class="hl-key">ORCHESTRATOR:</span> <span class="hl-str">Splitting into 4 subtasks...</span>
+
+<span class="hl-val">→ search_agent("LLaMA 3 enterprise")</span>
+<span class="hl-val">→ search_agent("GPT-4o enterprise pricing")</span>
+<span class="hl-com">   [parallel execution]</span>
+
+<span class="hl-val">→ read_agent(meta.com/llama3)</span>
+<span class="hl-val">→ read_agent(openai.com/gpt-4o)</span>
+
+<span class="hl-val">→ critic_agent(merged_findings)</span>
+<span class="hl-com">   [flags 2 unverified claims]</span>
+
+<span class="hl-val">→ search_agent(flagged_claims) </span>
+<span class="hl-com">   [re-verification loop]</span>
+
+<span class="hl-val">→ synthesizer_agent(verified_facts)</span>
+<span class="hl-str">   OUTPUT: 800-word comparison report ✓</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section class="contact" id="contact">
+  <div class="section-label" style="justify-content: center;">Let's Work Together</div>
+  <div class="section-title">Ready to build<br/><em style="font-family:'Instrument Serif',serif;font-style:italic">something great?</em></div>
+  <p class="contact-sub">
+    Whether you need a prompt system built from scratch, an existing AI product optimized,
+    or an evaluation framework to measure quality — let's talk.
+  </p>
+  <div class="contact-links">
+    <a href="mailto:your@email.com" class="contact-link">📧 Email Me</a>
+    <a href="https://github.com/yourusername" class="contact-link">🐙 GitHub</a>
+    <a href="https://linkedin.com/in/yourprofile" class="contact-link">💼 LinkedIn</a>
+    <a href="https://twitter.com/yourhandle" class="contact-link">🐦 Twitter / X</a>
+  </div>
+</section>
+
+<footer>
+  <div>© 2024 — Prompt Engineering Portfolio</div>
+  <div>Built with intent. Every token counts.</div>
+</footer>
+
+<script>
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+  });
+
+  function animateRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  document.querySelectorAll('a, button, .project-card, .skill-item, .technique-card').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.transform = 'translate(-50%,-50%) scale(2.5)';
+      ring.style.width = '60px'; ring.style.height = '60px';
+      ring.style.borderColor = 'rgba(232,255,71,0.6)';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.transform = 'translate(-50%,-50%) scale(1)';
+      ring.style.width = '40px'; ring.style.height = '40px';
+      ring.style.borderColor = 'rgba(232,255,71,0.4)';
+    });
+  });
+
+  // Tabs
+  function switchTab(id) {
+    document.querySelectorAll('.showcase-content').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  // Scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+      }
+    });
+  }, { threshold: 0.1 });
+  revealEls.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
